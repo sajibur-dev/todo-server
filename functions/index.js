@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const express = require("express");
 const cors = require("cors");
 const functions = require("firebase-functions");
@@ -6,8 +7,9 @@ const admin = require("firebase-admin");
 // app -scaffolding :
 const app = express();
 
-app.use(cors({ origin: true }));
+app.use(cors({origin:true}));
 
+app.use(express.json())
 // admin creadantial :
 
 const serviceAccount = require("./serviceAccountKey.json");
@@ -34,8 +36,8 @@ app.get("/", (req, res) => {
 
 app.post("/todo",async(req,res)=>{
     try {
-        await db.collection("todos").doc(`/${Date.now()}/`).create({
-            id:Date.now(),
+        await db.collection("todos").doc(`/${crypto.randomBytes(16).toString("hex")}/`).create({
+            id:crypto.randomBytes(16).toString("hex"),
             title:req.body.title,
             description:req.body.description,
             priority:req.body.priority,
@@ -45,7 +47,7 @@ app.post("/todo",async(req,res)=>{
         res.status(200).send({success:true,msg:'todo save successfully'})
     } catch (err) {
         console.log(err);
-        res.status(500).send({success:true,error:err.message})        
+        res.status(500).send({success:false,msg:err.message})        
     }
 })
 
@@ -58,7 +60,7 @@ app.get("/todo/:id",async(req,res)=>{
         res.status(200).send({success:true,data:todo})
     } catch (err) {
         console.log(err.messsage);
-        res.status(500).send({success:true,error:err.message});
+        res.status(500).send({success:true,msg:err.message});
     }
 })
 
@@ -87,24 +89,24 @@ app.get("/todo", async (req, res) => {
       res.status(200).send({ success: true, data: response });
     } catch (err) {
       console.log(err);
-      res.status(500).send({ success: false, err });
+      res.status(500).send({ success: false, msg:err.message });
     }
 });
 
 // update a pecific data 
 
 app.put("/todo/:id",async(req,res)=>{
+
     try {
         const id = req.params.id;
         await db.collection("todos").doc(id).update({
-            completed:true
+          completed:true
         });
-
         res.status(200).send({success:true,msg:"update is successfull"});
 
     } catch (err) {
         console.log(err.message);
-        res.status(500).send({success:false,error:err.message})
+        res.status(500).send({success:false,msg:err.message})
     }
 });
 
@@ -119,7 +121,7 @@ app.delete("/todo/:id",async(req,res)=>{
 
     } catch (err) {
         console.log(err.message);
-        res.status(500).send({success:false,error:err.message})
+        res.status(500).send({success:false,msg:err.message})
     }
 })
 
