@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const uuid = require('uuid')
 
 // app -scaffolding :
 const app = express();
@@ -34,10 +35,11 @@ app.get("/", (req, res) => {
 
 // post todo to firebase database :
 
-app.post("/todo",async(req,res)=>{
+app.post("/todo",async(req,res) =>{
+  const id = uuid.v4()
     try {
-        await db.collection("todos").doc(`/${crypto.randomBytes(16).toString("hex")}/`).create({
-            id:crypto.randomBytes(16).toString("hex"),
+        await db.collection("todos").doc(`/${id}/`).create({
+            id,
             title:req.body.title,
             description:req.body.description,
             priority:req.body.priority,
@@ -99,8 +101,11 @@ app.put("/todo/:id",async(req,res)=>{
 
     try {
         const id = req.params.id;
+        const todo = (await db.collection("todos").doc(id).get()).data();
+        res.status(200).send({success:true,data:todo})
+
         await db.collection("todos").doc(id).update({
-          completed:true
+          completed:!todo.completed
         });
         res.status(200).send({success:true,msg:"update is successfull"});
 
